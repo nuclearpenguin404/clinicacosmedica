@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+	<link rel="stylesheet" type="text/css" href="css/smoothness/jquery-ui-1.9.0.custom.css" />
+	<link rel="stylesheet" type="text/css" href="js/src/css/ui.jqgrid.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+
+
+
+	<script src="js/jquery-1.7.2.min.js" type="text/javascript"></script>
+ 	<script src="js/jquery-ui-1.9.0.custom.js" type="text/javascript"></script>
+	<script src="js/src/i18n/grid.locale-en.js" type="text/javascript"></script>
+	<script src="js/src/grid.loader.js" type="text/javascript"></script>
+	<script src="js/jquery.jqGrid.src.js" type="text/javascript"></script>
+
+	<script src="js/validationFunctions.js" type="text/javascript"></script>
+
+	<link rel="shortcut icon" href="hamster.ico" />
+
+
+ 	<script type="text/javascript">
+
+		jQuery(document).ready(function(){ 
+			var lastsel; 
+
+			$(function() {
+        		$( "#datepicker" ).datepicker({
+            	changeMonth: true,
+            	changeYear: true
+       			});
+
+        		$( "#format" ).change(function() {
+            		$( "#datepicker" ).datepicker( "option", "dateFormat", $( this ).val() );
+       			});
+
+   			});
+
+
+			$(function() {
+		        $("#dialogSelect").dialog({
+		            modal: true,
+		            autoOpen: false,
+		            buttons: {
+		                Ok: function() {
+		                    $( this ).dialog( "close" );
+		                }
+		            }
+		        });
+		    });		
+		 
+
+
+			var errorMessage = function(response,postdata){
+		        var json   = response.responseText;
+		        var result=JSON.parse(json);
+		        return [result.status,result.message,null];
+		    }
+
+			var mygrid = jQuery("#patientsList").jqGrid({
+			    url:'patients.php',
+			    datatype: "json",
+			    mtype: 'POST',
+			    colNames:['First Name', 'Last Name','Cell Phone','Home Phone','e-mail','Date of Birth','Address'],
+			    colModel:[
+			        {name:'firstName',index:'firstName', width:150, editable:true,sorttype:'text', editoptions:{maxlength:60},
+			        	editrules:{required:true, custom:true, custom_func:nameValidation}
+			    	},
+			        {name:'lastName',index:'lastName', width:150, editable:true,sorttype:'text', editoptions:{maxlength:60},
+			        	editrules:{required:true, custom:true, custom_func:nameValidation}
+			        },
+			        //{name:'cellPhone',index:'cellPhone', width:150, editable:true,sorttype:'text'},
+			        {name:'cellPhone',index:'cellPhone', width:150, editable:true, sorttype:'text', editoptions:{maxlength:60},
+			        	editrules: {required:false,custom:true,custom_func:phoneValidation}
+			        },			        
+			        //{name:'homePhone',index:'homePhone', width:150, editable:true,sorttype:'text'},
+			        {name:'homePhone',index:'homePhone',width:150, editable:true,sorttype:'text', editoptions:{maxlength:60},
+			        	editrules: {required:false,	custom: true, custom_func: phoneValidation}
+			        },
+			        //{name:'eMail',index:'eMail', width:150, editable:true,sorttype:'text'},
+			        {name:'eMail',index:'eMail',width:150, editable:true,sorttype:'text', editoptions:{maxlength:60},
+			        	editrules: {required:false, custom:true, custom_func:emailValidation}
+			        },
+			        {name:'dateOfBirth',index:'dateOfBirth',sorttype:'date',width:100, editable:true,
+			        	editoptions:{
+			        		maxlength:60,
+			        		size:20, 
+                			dataInit:function(el){ 
+                   				$(el).datepicker({dateFormat:'yy-mm-dd',changeMonth:true,changeYear:true,date:['1930','2050']}) 
+                			}
+			       		},
+			        },
+			       	/*{name:'dateOfBirth',index:'dateOfBirth', width:90,searchoptions:{
+			       		dataInit:function(el){$(el).datepicker({dateFormat:'yy-mm-dd',changeMonth:true,changeYear:true,date:['1930','2050']});} 
+			       	}},*/
+			       	{name:'address',index:'address', width:200, editable:true,sorttype:'text',
+			       		edittype:'textarea', editoptions:{rows:3,wrap:'hard',sorttype:'text',maxlength:300}
+			       	}
+			    ],
+			    rowNum:20,
+			    rowList:[10,20,30],
+			    //gridview: true,
+			    multiselect: true,
+			    pager: '#pgPatientsList',
+			    sortname: 'firstName',
+			    viewrecords: true,
+			    sortorder: "desc",
+			    caption:"Patients",
+			    rownumbers: true,
+			    editurl:"patients.php",
+
+				ondblClickRow: function(id){ 
+					//alert(id);			       
+					window.open('pers_m.php?id='+id,'_blank');
+				}
+
+			});
+			
+
+						
+			$("#addRow").click(function(){ 
+				jQuery("#patientsList").jqGrid('editGridRow',"new",{
+					reloadAfterSubmit:true,
+					closeAfterAdd:true,
+					afterSubmit:errorMessage
+				}); 
+			});		
+
+
+			$("#editRow").click(function(){ 
+				var gr = jQuery("#patientsList").jqGrid('getGridParam','selrow'); 
+				if( gr != null ) 
+					jQuery("#patientsList").jqGrid('editGridRow',gr,{reloadAfterSubmit:true,closeAfterEdit:true}); 
+				else 
+				{
+					//alert("Please Select Row"); 
+					$("#dialogSelect").html('Please select row!');
+					$("#dialogSelect").dialog('open');
+				}
+			});
+
+
+						
+			$("#delRow").click(function(){ 
+				
+				var gr0 = jQuery("#patientsList").jqGrid('getGridParam','selrow'); 
+
+				if( gr0 != null ){
+					//alert(gr.length);
+					var gr = jQuery("#patientsList").jqGrid('getGridParam','selarrrow'); 
+					jQuery("#patientsList").jqGrid('delGridRow',gr.toString(),{reloadAfterSubmit:true});					
+
+				}
+				else{
+					//alert("Please Select Row"); 
+					$("#dialogSelect").html('Please select row!');
+					$("#dialogSelect").dialog('open');
+				}
+			});
+
+
+			jQuery("#patientsList").jqGrid('navGrid','#pgPatientsList',{edit:false,add:false,del:false,search:false,refresh:true}); 
+			jQuery("#patientsList").jqGrid('filterToolbar',{searchOnEnter:false}); 
+
+
+			$("#toggleSearchPanel").click(function(){ 
+				mygrid[0].toggleToolbar(); 
+			});
+
+			$("#clearSearchPanel").click(function(){ 
+				mygrid[0].clearToolbar();
+			});
+
+		});
+
+	</script>
+
+</head>
+
+<body>
+
+<div id="nav">
+	<ul id="menu-top" class="ui-menu">
+		<li class="ui-menu-item"><a href="patients_m.html">Patients</a></li>
+		<li class="ui-menu-item"><a href="doctors_m.html">Doctors</a></li>
+		<li class="ui-menu-item"><a href="timetable_m.php">Timetable</a></li>
+	</ul>
+</div>
+
+
+<h2>Patients</h2>
+
+
+<div id="patientsNote">
+	Note: Double click on patient's record to edit treatments and progress data
+</div>
+
+<div id="dialogSelect"></div>
+
+<div>
+	<table id="patientsList"></table>
+	<div id="pgPatientsList"></div>
+	<div id="filterToolbar">Search Patients</div>
+</div>
+
+<div class="buttonsDiv left">
+    <input type="button" class="ui-button" value="Add Record" id="addRow" />
+    <input type="button" class="ui-button" value="Edit Record" id="editRow" />
+    <!--<input type="button" class="ui-button" value="Edit Patient's data" id="editPatData" />-->
+    <input type="button" class="ui-button" value="Delete Record" id="delRow"/>    
+    <input type="button" class="ui-button" value="Toggle Search Panel" id="toggleSearchPanel"/>    
+    <input type="button" class="ui-button" value="Clear Search" id="clearSearchPanel"/>        
+</div>
+
+<div class="buttonsDivSubmit left">
+	<form action="patientsPDF.php">
+		<input type="submit" class="ui-button" id="submitPdf" value="Export to PDF" />
+	</form>
+</div>
+
+<div class="buttonsDivSubmit">
+	<form action="patientsListXls.php">
+		<input type="submit" class="ui-button" value="Export to XLS" />
+	</form>
+</div>
+
+
+<div class="clr"></div>
+
+</body>
+</html>

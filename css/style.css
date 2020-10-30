@@ -1,0 +1,68 @@
+body{
+	font-size: 12px;
+}
+
+.clr{
+	clear:both;
+}
+
+.left{
+	float:left;
+}
+
+
+span.pale{
+	font-style: italic;
+	color: #888888;
+}
+
+
+div.buttonsDiv{
+	margin: 10px 0px 10px 0px;
+}
+
+div.buttonsDivSubmit{
+	margin: 10px 0px 10px 3px;
+}
+
+
+div#nav{
+	clear: both;
+	height: 45px;
+}
+
+
+div#patientsNote{
+	font-style: italic;
+	background: #B0E0E6; 
+	padding: 10px;
+	margin: 20px;
+	width:470px;
+	text-align: center;
+
+}
+
+div#doctorsNote{
+	font-style: italic;
+	background:#B0E0E6; 
+	padding: 10px;
+	margin: 20px;
+	width:360px;
+	text-align: center;
+}
+
+
+div#filterToolbar{
+	margin-left:30%;
+	display:none;
+}
+
+
+
+
+
+
+#pdfDiv{
+	position: relative;
+/*top: 10px;*/
+}
